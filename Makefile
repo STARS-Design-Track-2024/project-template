@@ -36,6 +36,7 @@ ifeq ($(ROOTLESS), 1)
 	USER_ARGS =
 endif
 export OPENLANE_ROOT?=$(PWD)/dependencies/openlane_src
+export OPENLANE2_ROOT?=$(HOME)/openlane2
 export PDK_ROOT?=$(PWD)/dependencies/pdks
 export DISABLE_LVS?=0
 
@@ -204,6 +205,16 @@ openlane:
 		exit 1; \
 	fi
 	cd openlane && $(MAKE) openlane
+
+# Install Openlane2
+.PHONY: openlane2
+openlane2: nix
+	@if [ "$$(realpath $${OPENLANE2_ROOT})" = "$$(realpath $$(pwd)/openlane)" ]; then\
+		echo "OPENLANE2_ROOT is set to '$$(pwd)/openlane' which contains openlane config files"; \
+		echo "Please set it to a different directory"; \
+		exit 1; \
+	fi
+	cd openlane && $(MAKE) openlane2
 
 #### Not sure if the targets following are of any use
 
@@ -427,3 +438,38 @@ caravel-sta: ./env/spef-mapping.tcl
 	@echo "You can find results for all corners in $(CUP_ROOT)/signoff/caravel/openlane-signoff/timing/"
 	@echo "Check summary.log of a specific corner to point to reports with reg2reg violations" 
 	@echo "Cap and slew violations are inside summary.log file itself"
+
+
+.PHONY: nix
+nix: remove-nix
+	@curl -L https://nixos.org/nix/install -o /tmp/nix_install.sh
+	sudo apt-get install -y curl
+	sh /tmp/nix_install.sh --yes --daemon --nix-extra-conf-file openlane/nix.conf
+	@rm /tmp/nix_install.sh 
+
+.PHONY: remove-nix
+remove-nix:
+	@-sudo systemctl stop nix-daemon.socket
+	@-sudo systemctl stop nix-daemon.service
+	@-sudo systemctl disable nix-daemon.socket
+	@-sudo systemctl disable nix-daemon.service
+	@-sudo systemctl daemon-reload
+	@-sudo rm -rf /etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf /nix ~root/.nix-channels ~root/.nix-defexpr ~root/.nix-profile
+	@-mv /etc/profile.d/nix.sh.backup-before-nix /etc/profile.d/nix.sh
+	@-mv /etc/bashrc.backup-before-nix /etc/bashrc
+	@-mv /etc/zshrc.backup-before-nix /etc/zshrc
+	@-mv /etc/bash.bashrc.backup-before-nix /etc/bash.bashrc
+	@-for i in $$(seq 1 32); do \
+		sudo userdel nixbld$$i; \
+	done
+	@-sudo groupdel nixbld
+#TODO:
+#Also check for remove-nix:
+#/etc/bash.bashrc
+#/etc/bashrc
+#/etc/profile
+#/etc/zsh/zshrc
+#/etc/zshrc
+
+#Removes caches
+#nix-collect-garbage

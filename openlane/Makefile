@@ -102,3 +102,25 @@ ifeq ($(OPENLANE_ROOT),)
 	@echo "Please export OPENLANE_ROOT"
 	@exit 1
 endif
+
+
+
+#https://openlane2.readthedocs.io/en/latest/getting_started/common/nix_installation/installation_win.html
+.PHONY: openlane2
+openlane2: check-openlane2-env
+	if [ -d "$(OPENLANE2_ROOT)" ]; then\
+		echo "Deleting exisiting $(OPENLANE2_ROOT)" && \
+		rm -rf $(OPENLANE2_ROOT) && sleep 2; \
+	fi
+	nix-env -f "<nixpkgs>" -iA cachix
+	sudo env PATH="$$PATH" cachix use openlane
+	-sudo pkill nix-daemon
+	git clone https://github.com/efabless/openlane2/ $(OPENLANE2_ROOT)
+	nix-shell --run "openlane --log-level ERROR --condensed --show-progress-bar --smoke-test" --pure $(OPENLANE2_ROOT)/shell.nix 
+
+.PHONY: check-openlane2-env
+check-openlane2-env:
+ifeq ($(OPENLANE2_ROOT),)
+	@echo "Please export OPENLANE2_ROOT"
+	@exit 1
+endif
