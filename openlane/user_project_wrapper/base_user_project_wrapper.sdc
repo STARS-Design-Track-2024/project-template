@@ -12,6 +12,8 @@
 #------------------------------------------#
 
 # Clock network
+# Added IO_SYNC here to reflect: https://github.com/efabless/openlane2/blob/7bf52ac24ae4df21f3ef965535addae5b515b322/docs/source/usage/caravel/index.md?plain=1#L1680
+set ::env(IO_SYNC) 0
 if {[info exists ::env(CLOCK_PORT)] && $::env(CLOCK_PORT) != ""} {
 	set clk_input $::env(CLOCK_PORT)
 	create_clock [get_ports $clk_input] -name clk -period $::env(CLOCK_PERIOD)

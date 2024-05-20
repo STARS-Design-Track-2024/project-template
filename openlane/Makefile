@@ -27,81 +27,81 @@ ifeq ($(ROOTLESS), 1)
 	USER_ARGS =
 endif
 
-openlane_cmd = \
-	"flow.tcl \
-	-design $$(realpath ./$*) \
-	-save_path $$(realpath ..) \
-	-save \
-	-tag $(OPENLANE_RUN_TAG) \
-	-overwrite \
-	-ignore_mismatches"
-openlane_cmd_interactive = "flow.tcl -it -file $$(realpath ./$*/interactive.tcl)"
+# openlane_cmd = \
+# 	"flow.tcl \
+# 	-design $$(realpath ./$*) \
+# 	-save_path $$(realpath ..) \
+# 	-save \
+# 	-tag $(OPENLANE_RUN_TAG) \
+# 	-overwrite \
+# 	-ignore_mismatches"
+# openlane_cmd_interactive = "flow.tcl -it -file $$(realpath ./$*/interactive.tcl)"
 
-docker_mounts = \
-	-v $$(realpath $(PWD)/..):$$(realpath $(PWD)/..) \
-	-v $(PDK_ROOT):$(PDK_ROOT) \
-	-v $(CARAVEL_ROOT):$(CARAVEL_ROOT) \
-	-v $(OPENLANE_ROOT):/openlane
+# docker_mounts = \
+# 	-v $$(realpath $(PWD)/..):$$(realpath $(PWD)/..) \
+# 	-v $(PDK_ROOT):$(PDK_ROOT) \
+# 	-v $(CARAVEL_ROOT):$(CARAVEL_ROOT) \
+# 	-v $(OPENLANE_ROOT):/openlane
 
-docker_env = \
-	-e PDK_ROOT=$(PDK_ROOT) \
-	-e PDK=$(PDK) \
-	-e MISMATCHES_OK=1 \
-	-e CARAVEL_ROOT=$(CARAVEL_ROOT) \
-	-e OPENLANE_RUN_TAG=$(OPENLANE_RUN_TAG)
+# docker_env = \
+# 	-e PDK_ROOT=$(PDK_ROOT) \
+# 	-e PDK=$(PDK) \
+# 	-e MISMATCHES_OK=1 \
+# 	-e CARAVEL_ROOT=$(CARAVEL_ROOT) \
+# 	-e OPENLANE_RUN_TAG=$(OPENLANE_RUN_TAG)
 
-ifneq ($(MCW_ROOT),)
-docker_env += -e MCW_ROOT=$(MCW_ROOT)
-docker_mounts += -v $(MCW_ROOT):$(MCW_ROOT)
-endif
+# ifneq ($(MCW_ROOT),)
+# docker_env += -e MCW_ROOT=$(MCW_ROOT)
+# docker_mounts += -v $(MCW_ROOT):$(MCW_ROOT)
+# endif
 
-docker_startup_mode = $(shell test -t 0 && echo "-it" || echo "--rm" )
-docker_run = \
-	docker run $(docker_startup_mode) \
-	$(USER_ARGS) \
-	$(docker_mounts) \
-	$(docker_env) \
+# docker_startup_mode = $(shell test -t 0 && echo "-it" || echo "--rm" )
+# docker_run = \
+# 	docker run $(docker_startup_mode) \
+# 	$(USER_ARGS) \
+# 	$(docker_mounts) \
+# 	$(docker_env) \
 
-list:
-	@echo $(designs)
+# list:
+# 	@echo $(designs)
 
-.PHONY: $(designs)
-$(designs) : export current_design=$@
-$(designs) : % : ./%/config.json
-ifneq (,$(wildcard ./$(current_design)/interactive.tcl))
-	$(docker_run) \
-		$(OPENLANE_IMAGE_NAME) sh -c $(openlane_cmd_interactive)
-else
-	# $(current_design)
-	mkdir -p ./$*/runs/$(OPENLANE_RUN_TAG) 
-	rm -rf ./$*/runs/$*
-	ln -s $$(realpath ./$*/runs/$(OPENLANE_RUN_TAG)) ./$*/runs/$*
-	$(docker_run) \
-		$(OPENLANE_IMAGE_NAME) sh -c $(openlane_cmd)
-endif
-	@mkdir -p ../signoff/$*/
-	@cp ./$*/runs/$*/OPENLANE_VERSION ../signoff/$*/
-	@cp ./$*/runs/$*/PDK_SOURCES ../signoff/$*/
-	@cp ./$*/runs/$*/reports/*.csv ../signoff/$*/
+# .PHONY: $(designs)
+# $(designs) : export current_design=$@
+# $(designs) : % : ./%/config.json
+# ifneq (,$(wildcard ./$(current_design)/interactive.tcl))
+# 	$(docker_run) \
+# 		$(OPENLANE_IMAGE_NAME) sh -c $(openlane_cmd_interactive)
+# else
+# 	# $(current_design)
+# 	mkdir -p ./$*/runs/$(OPENLANE_RUN_TAG) 
+# 	rm -rf ./$*/runs/$*
+# 	ln -s $$(realpath ./$*/runs/$(OPENLANE_RUN_TAG)) ./$*/runs/$*
+# 	$(docker_run) \
+# 		$(OPENLANE_IMAGE_NAME) sh -c $(openlane_cmd)
+# endif
+# 	@mkdir -p ../signoff/$*/
+# 	@cp ./$*/runs/$*/OPENLANE_VERSION ../signoff/$*/
+# 	@cp ./$*/runs/$*/PDK_SOURCES ../signoff/$*/
+# 	@cp ./$*/runs/$*/reports/*.csv ../signoff/$*/
 
-.PHONY: openlane
-openlane: check-openlane-env
-	if [ -d "$(OPENLANE_ROOT)" ]; then\
-		echo "Deleting exisiting $(OPENLANE_ROOT)" && \
-		rm -rf $(OPENLANE_ROOT) && sleep 2; \
-		fi
-	git clone https://github.com/The-OpenROAD-Project/OpenLane -b $(OPENLANE_TAG) --depth=1 $(OPENLANE_ROOT) && \
-		cd $(OPENLANE_ROOT) && \
-		export OPENLANE_IMAGE_NAME=efabless/openlane:$(OPENLANE_TAG) && \
-		export IMAGE_NAME=efabless/openlane:$(OPENLANE_TAG) && \
-		$(MAKE) pull-openlane
+# .PHONY: openlane
+# openlane: check-openlane-env
+# 	if [ -d "$(OPENLANE_ROOT)" ]; then\
+# 		echo "Deleting exisiting $(OPENLANE_ROOT)" && \
+# 		rm -rf $(OPENLANE_ROOT) && sleep 2; \
+# 		fi
+# 	git clone https://github.com/The-OpenROAD-Project/OpenLane -b $(OPENLANE_TAG) --depth=1 $(OPENLANE_ROOT) && \
+# 		cd $(OPENLANE_ROOT) && \
+# 		export OPENLANE_IMAGE_NAME=efabless/openlane:$(OPENLANE_TAG) && \
+# 		export IMAGE_NAME=efabless/openlane:$(OPENLANE_TAG) && \
+# 		$(MAKE) pull-openlane
 
-.PHONY: check-openlane-env
-check-openlane-env:
-ifeq ($(OPENLANE_ROOT),)
-	@echo "Please export OPENLANE_ROOT"
-	@exit 1
-endif
+# .PHONY: check-openlane-env
+# check-openlane-env:
+# ifeq ($(OPENLANE_ROOT),)
+# 	@echo "Please export OPENLANE_ROOT"
+# 	@exit 1
+# endif
 
 
 
@@ -124,3 +124,25 @@ ifeq ($(OPENLANE2_ROOT),)
 	@echo "Please export OPENLANE2_ROOT"
 	@exit 1
 endif
+
+openlane_cmd = \
+	"openlane \
+	--run-tag $(OPENLANE_RUN_TAG) \
+	$*/config.json"
+openlane_cmd_interactive = "flow.tcl -it -file $$(realpath ./$*/interactive.tcl)"
+
+
+list:
+	@echo $(designs)
+
+.PHONY: $(designs)
+$(designs) : export current_design=$@
+$(designs) : % : ./%/config.json
+	mkdir -p ./$*/runs/$(OPENLANE_RUN_TAG) 
+	rm -rf ./$*/runs/$*
+	ln -s $$(realpath ./$*/runs/$(OPENLANE_RUN_TAG)) ./$*/runs/$*
+	nix-shell --run $(openlane_cmd) --pure $(OPENLANE2_ROOT)/shell.nix
+# @mkdir -p ../signoff/$*/
+# @cp ./$*/runs/$*/OPENLANE_VERSION ../signoff/$*/
+# @cp ./$*/runs/$*/PDK_SOURCES ../signoff/$*/
+# @cp ./$*/runs/$*/reports/*.csv ../signoff/$*/
