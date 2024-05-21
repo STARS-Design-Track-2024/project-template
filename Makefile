@@ -183,8 +183,7 @@ verify-all-gl-sdf: $(dv-targets-gl-sdf)
 
 $(dv-targets-rtl): SIM=RTL
 $(dv-targets-rtl): verify-%-rtl:
-	$(custom_run_verify)
-
+	@$(custom_run_verify) || ( echo "Please check to ensure march=rv32i_zicsr not march=rv32i: mgmt_core_wrapper/verilog/dv/make/var.makefile"; exit 1 )
 
 $(dv-targets-gl): SIM=GL
 $(dv-targets-gl): verify-%-gl: $(dv_base_dependencies)
