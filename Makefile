@@ -19,6 +19,7 @@ export CARAVEL_ROOT?=$(PWD)/caravel
 PRECHECK_ROOT?=${HOME}/mpw_precheck
 export MCW_ROOT?=$(PWD)/mgmt_core_wrapper
 SIM?=RTL
+export GCC_PATH=/opt/riscv32/bin
 
 # Install lite version of caravel, (1): caravel-lite, (0): caravel
 CARAVEL_LITE?=1
@@ -151,6 +152,19 @@ docker_run_verify=\
 		efabless/dv:latest \
 		sh -c $(verify_command)
 
+custom_run_verify =\
+    export TARGET_PATH=${TARGET_PATH} &&\
+    export PDK_ROOT=${PDK_ROOT} &&\
+    export CARAVEL_ROOT=${CARAVEL_ROOT} &&\
+    export DESIGNS=$(TARGET_PATH) &&\
+    export USER_PROJECT_VERILOG=$(TARGET_PATH)/verilog &&\
+    export PDK=$(PDK) &&\
+    export CORE_VERILOG_PATH=$(TARGET_PATH)/mgmt_core_wrapper/verilog &&\
+    export CARAVEL_VERILOG_PATH=$(TARGET_PATH)/caravel/verilog &&\
+    export MCW_ROOT=$(MCW_ROOT) &&\
+    cd verilog/dv/$* && export SIM=${SIM} && make
+
+
 .PHONY: harden
 harden: $(blocks)
 
@@ -166,9 +180,11 @@ verify-all-gl: $(dv-targets-gl)
 .PHONY: verify-all-gl-sdf
 verify-all-gl-sdf: $(dv-targets-gl-sdf)
 
+
 $(dv-targets-rtl): SIM=RTL
-$(dv-targets-rtl): verify-%-rtl: $(dv_base_dependencies)
-	$(docker_run_verify)
+$(dv-targets-rtl): verify-%-rtl:
+	$(custom_run_verify)
+
 
 $(dv-targets-gl): SIM=GL
 $(dv-targets-gl): verify-%-gl: $(dv_base_dependencies)
@@ -427,3 +443,13 @@ caravel-sta: ./env/spef-mapping.tcl
 	@echo "You can find results for all corners in $(CUP_ROOT)/signoff/caravel/openlane-signoff/timing/"
 	@echo "Check summary.log of a specific corner to point to reports with reg2reg violations" 
 	@echo "Cap and slew violations are inside summary.log file itself"
+
+.PHONY: riscv
+riscv:
+    rm -rf ~/riscv &&\
+    mkdir ~/riscv &&\
+    cd ~/riscv &&\
+    git clone https://github.com/riscv/riscv-gnu-toolchain &&\
+    cd ~/riscv/riscv-gnu-toolchain &&\
+    ./configure --prefix=/opt/riscv32 --with-arch=rv32i --with-abi=ilp32 &&\
+    make
