@@ -17,7 +17,9 @@
 -v $(USER_PROJECT_VERILOG)/gl/user_project_wrapper.v    
 -v $(USER_PROJECT_VERILOG)/gl/user_proj_example.v
 
--v $(USER_PROJECT_VERILOG)/gl/caravel_core.v
+#The second of these was the default, the first could be found, but we used neither last year.
+-v $(USER_PROJECT_VERILOG)/../caravel/verilog/gl/caravel_core.v
+#-v $(USER_PROJECT_VERILOG)/gl/caravel_core.v
 
 # default should be added according to the defaults used
 
