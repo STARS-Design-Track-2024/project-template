@@ -1,9 +1,0 @@
-{
-  "DESIGN_NAME": "pm32",
-  "VERILOG_FILES": [
-    "dir::../../verilog/rtl/pm32/pm32.v",
-    "dir::../../verilog/rtl/pm32/spm.v"
-  ],
-  "CLOCK_PERIOD": 25,
-  "CLOCK_PORT": "clk"
-}
