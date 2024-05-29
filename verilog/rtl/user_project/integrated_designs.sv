@@ -73,6 +73,7 @@ module integrated_designs #(parameter NUM_PROJECTS = 13) (
     */
 
     //comment this when its time to give to students
+    //ports may change depending on what sort of wrapper is used on the project
     Miguels_Wrapper design_1
     (
 
