@@ -34,21 +34,11 @@ module integrated_designs #(parameter NUM_PROJECTS = 13) (
     assign gpio_out = (design_select > 4'd0 && design_select <= 4'd13) ? designs_gpio_out[design_select] : 'b0; 
     assign gpio_oeb = (design_select > 4'd0 && design_select <= 4'd13) ? designs_gpio_oeb[design_select] : 'b1;
 
-    assign designs_cs[1] = !(design_select == 4'd1);
-    assign designs_cs[2] = !(design_select == 4'd2);
-    assign designs_cs[3] = !(design_select == 4'd3);
-    assign designs_cs[4] = !(design_select == 4'd4);
-    assign designs_cs[5] = !(design_select == 4'd5);
-    assign designs_cs[6] = !(design_select == 4'd6);
-    assign designs_cs[7] = !(design_select == 4'd7);
-    assign designs_cs[8] = !(design_select == 4'd8);
-    assign designs_cs[9] = !(design_select == 4'd9);
-    assign designs_cs[10] = !(design_select == 4'd10);
-    assign designs_cs[11] = !(design_select == 4'd11);
-    assign designs_cs[12] = !(design_select == 4'd12);
-    assign designs_cs[13] = !(design_select == 4'd13);
-    //assign designs_cs[14] = !(design_select == 4'd14);
-    //assign designs_cs[15] = !(design_select == 4'd15);
+    generate
+        for(genvar i = 1; i <= NUM_PROJECTS; i++) begin
+            assign designs_cs[i] = !(design_select == 4'di);
+        end
+    endgenerate
 
     reset_router design_reset (
 
