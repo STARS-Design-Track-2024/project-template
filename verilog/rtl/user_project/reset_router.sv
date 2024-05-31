@@ -6,7 +6,7 @@ module reset_router #(parameter NUM_PROJECTS = 13) (
 `endif
 
     input clk,
-    input n_rst,
+    input n_rst, //this IS an nrst, but the rest of the integration uses positive reset, the logic in this file outputs a synchronized postive reset when the nrst occurs
     input [NUM_PROJECTS:1] designs_cs,
     output wire [NUM_PROJECTS:1] designs_n_rst
 );
@@ -43,12 +43,12 @@ module async_reset_sync (
     assign next_n_rst = rff;
 
     always_ff @ (posedge clk, negedge asyncrst_n) begin
-        if(!asyncrst_n) begin
-            n_rst <= 1'b0;
-            rff <= 1'b0;
+        if(~asyncrst_n) begin
+            n_rst <= 1'b1;
+            rff <= 1'b1;
         end else begin
             n_rst <= next_n_rst;
-            rff <= 1'b1;
+            rff <= 1'b0;
         end
     end
 endmodule
